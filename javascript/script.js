@@ -26,7 +26,7 @@ const query_insert3 = "INSERT INTO xx_demo1.users (id, name, email) VALUES (3, '
 //select all data from the table
 const selectQuery = 'SELECT * FROM xx_demo1.users';
 
-// Fonction pour exécuter une requête avec gestion d'erreur
+// execute a query and print the results
 async function executeQuery(query, successMessage) {
     try {
         await client.execute(query);
@@ -36,6 +36,7 @@ async function executeQuery(query, successMessage) {
     }
 }
 
+// main function
 async function main() {
     try {
         await client.connect();
@@ -58,12 +59,14 @@ async function main() {
 
 main();
 
+//create a server
 const server = http.createServer((req, res) => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/plain');
     res.end("test");
 });
 
+//listen to the server
 server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
 }); 
