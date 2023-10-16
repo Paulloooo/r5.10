@@ -1,9 +1,3 @@
-npm install cassandra-driver
-Changer xx par les initiales
-lancer la commande node scirpt js
-
-mettre en forme le texte d'au dessus
-
 ## Installation de Cassandra
 
 Installer la dépendance cassandra-driver
