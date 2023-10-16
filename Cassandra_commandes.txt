@@ -1,0 +1,234 @@
+AVANT PROPOS
+
+Ce fichier répertorie toutes les commandes, qui peuvent être utilisées les unes à la suite des autres.
+Si vous avez des erreurs, regardez ce que ça vous renvoi et regarder la requete, ça vous aidera.
+
+
+Faite un ctrl+f -> remplacer "ar_" par vos initialles "xx_".
+
+Pour tout champ dans les requetes ressamblant à ça : ba966494-ec50-4559-8f52-954c0de2abe3,
+remplacez par l'uuid que vous récupérez avec la commande de l'étape 5.
+
+
+ 1 -----------------------------------------------------------------------------------------------
+
+Création des keyspaces
+
+CREATE KEYSPACE ar_demo1 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+CREATE KEYSPACE ar_demo2 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+
+ 2 -----------------------------------------------------------------------------------------------
+
+Création des column families
+
+USE ar_demo1;
+CREATE TABLE ar_colFamDemo1 (
+    ar_col1 UUID PRIMARY KEY,
+    ar_col2 text,
+    ar_col3 int
+);
+
+USE ar_demo2;
+CREATE TABLE ar_colFamDemo2 (
+    ar_col1 UUID PRIMARY KEY,
+    ar_col2 text,
+    ar_col3 int
+);
+
+ 3 -----------------------------------------------------------------------------------------------
+
+Modification des column families
+
+USE ar_demo1;
+
+ALTER TABLE ar_colFamDemo1 ADD ar_col4 set<text>;
+ALTER TABLE ar_colFamDemo1 ADD ar_col5 map<text, int>;
+ALTER TABLE ar_colFamDemo1 ADD ar_col6 tuple<text, int, float>;
+
+ 4 -----------------------------------------------------------------------------------------------
+
+Insertion de valeurs pour pas que la table soit vide
+
+INSERT INTO ar_colFamDemo1 (ar_col1, ar_col2, ar_col3) VALUES (uuid(), 'test', 123);
+
+ 5 -----------------------------------------------------------------------------------------------
+
+Récupération de l'uuid pour plus tard
+
+SELECT ar_col1 FROM ar_colFamDemo1 LIMIT 1;
+(Copier le résultat dans le presse-papier)
+
+ 6 -----------------------------------------------------------------------------------------------
+
+Mise a jour des tables avec insertion de valeurs sur la ligne avec l'uuid qu'on a récup
+
+UPDATE ar_colFamDemo1 SET ar_col4 = {'value1', 'value2'} WHERE ar_col1 = ba966494-ec50-4559-8f52-954c0de2abe3;
+UPDATE ar_colFamDemo1 SET ar_col5 = {'key1': 1, 'key2': 2} WHERE ar_col1 = ba966494-ec50-4559-8f52-954c0de2abe3;
+UPDATE ar_colFamDemo1 SET ar_col6 = ('tuple_value', 123, 1.23) WHERE ar_col1 = ba966494-ec50-4559-8f52-954c0de2abe3;
+
+ 7 -----------------------------------------------------------------------------------------------
+
+Création de type personnalisé et mise en table
+
+CREATE TYPE ar_custom_type (field1 text, field2 int);
+ALTER TABLE ar_colFamDemo1 ADD ar_col7 ar_custom_type;
+
+ 8 -----------------------------------------------------------------------------------------------
+
+Création de tables dans le KS 2
+
+USE ar_demo2;
+
+-------------------------------------------------
+
+Clés primaires
+Identifie de manière unique une ligne dans une table :
+
+ - Simple : une seule colonne
+ - Composite : plusieurs colonnes
+La première colonne est la clé de partition, les colonnes suivantes sont les clés de clustering.
+
+CREATE TABLE ar_colFamDemo3 (
+    ar_col1 text,
+    ar_col2 int,
+    ar_col3 float,
+    PRIMARY KEY (ar_col1, ar_col2)
+);
+
+-------------------------------------------------
+
+Clustering order
+
+Le clustering order détermine l'ordre dans lequel les lignes sont stockées pour une clé de partition donnée.
+
+CREATE TABLE ar_colFamDemo4 (
+    ar_col1 text,
+    ar_col2 int,
+    ar_col3 float,
+    PRIMARY KEY (ar_col1, ar_col2)
+) WITH CLUSTERING ORDER BY (ar_col2 DESC);
+
+ 9 -----------------------------------------------------------------------------------------------
+
+Activer les vues materialisées :
+
+ctrl+d (quitter cqlsh)
+
+sed -i 's/materialized_views_enabled: false/materialized_views_enabled: true/' /etc/cassandra/cassandra.yaml
+exit (quitter le bash du conteneur)
+
+docker restart cassandra4-cluster-server-1
+docker exec -it cassandra4-cluster-server-1 bash (revenir dans le bash du conteneur)
+cqlsh (revenir dans le cqlsh)
+
+-------------------------------------------------
+
+Une vue matérialisée est une table générée à partir d'une table existante et organisée différemment.
+
+USE ar_demo1;
+CREATE MATERIALIZED VIEW ar_mv AS SELECT ar_col2, ar_col1, ar_col3 FROM ar_colFamDemo1 WHERE ar_col2 IS NOT NULL AND ar_col1 IS NOT NULL PRIMARY KEY (ar_col2, ar_col1);
+
+ 10 ----------------------------------------------------------------------------------------------
+
+Selection
+
+SELECT * FROM ar_colFamDemo1 WHERE ar_col1 = ba966494-ec50-4559-8f52-954c0de2abe3;
+SELECT * FROM ar_colFamDemo1 WHERE ar_col2 IN ('value1', 'value2') ALLOW FILTERING;
+
+ 11 ----------------------------------------------------------------------------------------------
+
+Agregation
+
+SELECT COUNT(*), MAX(ar_col3), AVG(ar_col3), MIN(ar_col3), SUM(ar_col3) FROM ar_colFamDemo1;
+
+ 12 ----------------------------------------------------------------------------------------------
+
+Limites et ranges
+
+SELECT * FROM ar_colFamDemo1 LIMIT 5;
+SELECT * FROM ar_colFamDemo1 WHERE ar_col3 > 100 AND ar_col3 < 200 ALLOW FILTERING;
+
+ 13 ----------------------------------------------------------------------------------------------
+
+Accélerer des requêtes sur des colonnes non primaires
+
+CREATE INDEX ON ar_colFamDemo1 (ar_col2);
+
+ 14 ----------------------------------------------------------------------------------------------
+
+ALLOW FILTERING permet d'exécuter des requêtes qui seraient inefficaces car elles nécessiteraient de scanner une grande partie de la table. C'est utile pour les requêtes sur des colonnes non indexées ou non primaires, mais cela peut être coûteux en termes de performances.
+
+SELECT * FROM ar_colFamDemo1 WHERE ar_col3 = 123 ALLOW FILTERING;
+(Observer la table)
+
+ 15 ----------------------------------------------------------------------------------------------
+
+MàJ et suppression de la table
+
+UPDATE ar_colFamDemo1 SET ar_col4 = ar_col4 + {'value3'} WHERE ar_col1 = ba966494-ec50-4559-8f52-954c0de2abe3;
+(Regarder les modifications de la table)
+
+DELETE ar_col4['value3'] FROM ar_colFamDemo1 WHERE ar_col1 = ba966494-ec50-4559-8f52-954c0de2abe3;
+(Revient comme avant)
+
+ 16 ----------------------------------------------------------------------------------------------
+
+Index personalisés et requetes SASI
+
+ctrl+d (quitter cqlsh)
+
+sed -i 's/sasi_indexes_enabled: false/sasi_indexes_enabled: true/' /etc/cassandra/cassandra.yaml
+exit (quitter le bash du conteneur)
+
+docker restart cassandra4-cluster-server-1
+docker exec -it cassandra4-cluster-server-1 bash (revenir dans le bash du conteneur)
+cqlsh (revenir dans le cqlsh)
+
+ 17 ----------------------------------------------------------------------------------------------
+
+Index personnalisés
+SASI (SStable Attached Secondary Index) est un type d'index secondaire pour Cassandra. Il offre des capacités de recherche avancées, comme la recherche par préfixe, suffixe et sous-chaîne.
+
+USE ar_demo1;
+CREATE CUSTOM INDEX ON ar_colFamDemo1 (ar_col2) USING 'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = {'mode': 'PREFIX', 'analyzer_class': 'org.apache.cassandra.index.sasi.analyzer.StandardAnalyzer', 'case_sensitive': 'false'};
+
+CREATE CUSTOM INDEX ON ar_colFamDemo1 (ar_col2) USING 'org.apache.cassandra.index.sasi.SASIIndex' WITH OPTIONS = {'mode': 'CONTAINS', 'analyzer_class': 'org.apache.cassandra.index.sasi.analyzer.StandardAnalyzer', 'case_sensitive': 'false'};
+
+ 18 ----------------------------------------------------------------------------------------------
+
+Jeu de données pour tester
+
+INSERT INTO ar_demo1.ar_colFamDemo1 (ar_col1, ar_col2, ar_col3) VALUES (uuid(), 'test_prefix_suffix', 123);
+INSERT INTO ar_demo1.ar_colFamDemo1 (ar_col1, ar_col2, ar_col3) VALUES (uuid(), 'prefix_test_suffix', 456);
+INSERT INTO ar_demo1.ar_colFamDemo1 (ar_col1, ar_col2, ar_col3) VALUES (uuid(), 'prefix_suffix_test', 789);
+
+ 19 ----------------------------------------------------------------------------------------------
+
+Test des préfixes, sufixes et contains
+
+Prefix
+SELECT * FROM ar_demo1.ar_colFamDemo1 WHERE ar_col2 LIKE 'test%';
+
+Suffix
+SELECT * FROM ar_demo1.ar_colFamDemo1 WHERE ar_col2 LIKE '%test';
+
+Contains
+SELECT * FROM ar_demo1.ar_colFamDemo1 WHERE ar_col2 LIKE '%test%';
+
+ 20 ----------------------------------------------------------------------------------------------
+
+Drop index
+
+DROP INDEX ar_colfamdemo1_ar_col2_idx_1;
+
+ 21 ----------------------------------------------------------------------------------------------
+
+Delete row
+
+DELETE FROM ar_demo1.ar_colFamDemo1 WHERE ar_col1=ba966494-ec50-4559-8f52-954c0de2abe3 IF EXISTS;
+
+ 22 ----------------------------------------------------------------------------------------------
+
+Nodetool et réparation
+
+docker exec -it cassandra4-cluster-server-1 nodetool repair ar_demo1 ar_colFamDemo1
