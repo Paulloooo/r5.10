@@ -1,0 +1,58 @@
+Partie S0103 du TP :
+Problème : Imaginez que nous construisions un service de streaming musical où les utilisateurs peuvent créer des listes de lecture et ajouter des chansons à ces listes de lecture. Nous souhaitons utiliser Apache Cassandra pour stocker efficacement les données des utilisateurs, des listes de lecture et des chansons.
+Solution : Nous allons créer un modèle de données pour ce problème et montrer différentes solutions en utilisant Cassandra. Nos données d'exemple incluront des utilisateurs, des listes de lecture et des chansons.
+Données d'exemple :
+•	Utilisateurs : Alice, Bob, Carol
+•	Listes de lecture : Les favoris d'Alice, Classiques du rock de Bob, Mix de jazz de Carol
+•	Chansons :
+o	"Chanson A" de l'artiste X
+o	"Chanson B" de l'artiste Y
+o	"Chanson C" de l'artiste Z
+o	"Chanson D" de l'artiste X
+Modèle de données : Nous utiliserons trois tables pour représenter nos données : utilisateurs, listes de lecture et chansons de liste de lecture.
+1.	Table utilisateurs :
+o	Colonnes : user_id (Clé primaire), prénom, nom, email
+2.	Table listes de lecture :
+o	Colonnes : playlist_id (Clé primaire), user_id (Clé étrangère), nom_liste, créé_le
+3.	Table chansons de liste de lecture :
+o	Colonnes : playlist_id (Clé de partition), song_id (Clé de regroupement), titre_chanson, nom_artiste
+Création des tables :
+Dans Cassandra, vous créeriez ces tables à l'aide du CQL (Cassandra Query Language). Voici un exemple simplifié du CQL pour créer ces tables :
+CREATE TABLE utilisateurs (
+    user_id UUID PRIMARY KEY,
+    prénom TEXT,
+    nom TEXT,
+    email TEXT
+);
+
+CREATE TABLE listes_de_lecture (
+    playlist_id UUID PRIMARY KEY,
+    user_id UUID,
+    nom_liste TEXT,
+    créé_le TIMESTAMP
+);
+
+CREATE TABLE chansons_de_liste_de_lecture (
+    playlist_id UUID,
+    song_id UUID,
+    titre_chanson TEXT,
+    nom_artiste TEXT,
+    PRIMARY KEY (playlist_id, song_id)
+);
+
+-- Insérer des utilisateurs
+INSERT INTO utilisateurs (user_id, prénom, nom, email) VALUES (uuid(), 'Alice', 'Smith', 'alice@email.com');
+
+-- Insérer des listes de lecture
+INSERT INTO listes_de_lecture (playlist_id, user_id, nom_liste, créé_le) VALUES (uuid(), user_id, 'Les favoris d''Alice', toTimestamp(now()));
+
+-- Insérer des chansons de liste de lecture
+INSERT INTO chansons_de_liste_de_lecture (playlist_id, song_id, titre_chanson, nom_artiste) VALUES (playlist_id, uuid(), 'Chanson A', 'Artiste X');
+
+SELECT * FROM listes_de_lecture WHERE user_id = <user_id de Bob>;
+
+SELECT titre_chanson, nom_artiste FROM chansons_de_liste_de_lecture WHERE playlist_id = <playlist_id des favoris d'Alice>; 
+
+SELECT * FROM utilisateurs WHERE email = 'alice@email.com';
+
+SELECT user_id, COUNT(playlist_id) FROM listes_de_lecture GROUP BY user_id;
