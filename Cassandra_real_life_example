@@ -1,0 +1,54 @@
+CREATE TABLE xx_utilisateurs (
+    id UUID PRIMARY KEY,
+    nom TEXT,
+    age INT,
+    emails SET<TEXT>,
+    numeros_de_telephone LIST<TEXT>,
+    adresses MAP<TEXT, TEXT>
+);
+
+CREATE TABLE xx_commandes (
+    id UUID PRIMARY KEY,
+    utilisateur_id UUID,
+    produit TEXT,
+    quantite INT,
+    date_de_commande TIMESTAMP,
+    statut TEXT
+);
+
+-------------------------------------------------------------------------------------------------
+
+INSERT INTO utilisateurs (id, nom, age, emails, numeros_de_telephone, adresses)
+VALUES (uuid(), 'Alice', 30, {'alice@example.com'}, ['01 23 45 67 89'], {'domicile': '123 rue de la République'});
+
+INSERT INTO utilisateurs (id, nom, age, emails, numeros_de_telephone, adresses)
+VALUES (uuid(), 'Bob', 35, {'bob@example.com', 'bob@gmail.com'}, ['06 12 34 56 78'], {'travail': '456 avenue des Champs-Élysées'});
+
+-------------------------------------------------------------------------------------------------
+
+INSERT INTO commandes (id, utilisateur_id, produit, quantite, date_de_commande, statut)
+VALUES (
+    uuid(), <user_id>, 'Produit 1', 2, toTimestamp(now()), 'En cours'
+);
+
+INSERT INTO commandes (id, utilisateur_id, produit, quantite, date_de_commande, statut)
+VALUES (
+    uuid(), <user_id>, 'Produit 2', 1, toTimestamp(now()), 'Livré'
+);
+
+-------------------------------------------------------------------------------------------------
+
+-- Sélectionnez tous les utilisateurs
+SELECT * FROM utilisateurs;
+
+-- Sélectionnez tous les utilisateurs dont l'âge est supérieur à 32
+SELECT * FROM utilisateurs WHERE age > 32 ALLOW FILTERING;
+
+-- Sélectionnez toutes les commandes de Bob
+SELECT * FROM commandes WHERE utilisateur_id = <user_id> ALLOW FILTERING;
+
+-- Mettez à jour le statut d'une commande
+UPDATE commandes SET statut = 'En attente' WHERE id = <command_id>;
+
+-- Supprimez une commande
+DELETE FROM commandes WHERE id = <command_id>;
