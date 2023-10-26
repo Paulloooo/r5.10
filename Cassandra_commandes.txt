@@ -9,6 +9,7 @@ Faite un ctrl+f -> remplacer "ar_" par vos initialles "xx_".
 Pour tout champ dans les requetes ressamblant à ça : ba966494-ec50-4559-8f52-954c0de2abe3,
 remplacez par l'uuid que vous récupérez avec la commande de l'étape 5.
 
+Pour toutes commandes, se mettre dans le terminal du conteneur et faire "cqlsh" pour arriver sur le shell SQL de cassandra.
 
  1 -----------------------------------------------------------------------------------------------
 
@@ -232,3 +233,17 @@ DELETE FROM ar_demo1.ar_colFamDemo1 WHERE ar_col1=ba966494-ec50-4559-8f52-954c0d
 Nodetool et réparation
 
 docker exec -it cassandra4-cluster-server-1 nodetool repair ar_demo1 ar_colFamDemo1
+
+ 23 ----------------------------------------------------------------------------------------------
+
+Afficher les tables / keyspaces
+
+DESCRIBE KEYSPACES;
+DESCRIBE TABLES; (on peut se mettre dans un keyspace en particulier pour n'avoir que certaines tables)
+
+ 24 ----------------------------------------------------------------------------------------------
+
+Drop table / keyspace
+
+DROP KEYSPACE IF EXISTS ar_demo2;
+DROP TABLE IF EXISTS ar_colFamDemo2;
