@@ -1,0 +1,350 @@
+Comme pour Cassandra, remplacer "ar_" par vos initiales
+
+Si vous vous connectez avec le conteneur du prof : les identifiants sont 
+user : root
+password : example
+
+Voir databases :
+show dbs; 
+
+Contenu d'une table(collection) :
+db.ar_collection.find().pretty(); // le resultat est plus joli
+db.ar_collection.find({ champ: "valeur" });
+
+Vider une collection :
+db.your_collection.deleteMany({})
+
+
+
+1 --------------------------------------------------------------------
+
+Création d'une base de données
+
+use ar_demo1
+
+2 --------------------------------------------------------------------
+
+Création de collections
+
+db.createCollection("ar_mdemo1")
+db.createCollection("ar_mdemo2")
+
+3 --------------------------------------------------------------------
+
+Insertion de données
+
+--------------------------
+
+Sur une ligne :
+
+db.ar_mdemo1.insertOne({
+    ar_col1: "String data",
+    ar_col2: 123,
+    ar_col3: true,
+    ar_col4: new Date(),
+    ar_col5: { subfield1: "subdata", subfield2: 456 },
+    ar_col6: [1, 2, 3, 4, 5]
+})
+
+db.ar_mdemo2.insertOne({
+    ar_col1: "String data",               // String : Chaîne de caractères
+    ar_col2: 123,                         // Number : Entier (int32 ou int64 selon la plateforme)
+    ar_col3: 123.456,                     // Double : Nombre à virgule flottante double précision
+    ar_col4: true,                        // Boolean : Valeur booléenne (true ou false)
+    ar_col5: new Date(),                  // Date : Date et heure
+    ar_col6: new ObjectId(),              // ObjectId : Identifiant unique généré par MongoDB
+    ar_col7: { subfield1: "subdata" },    // Embedded document : Document imbriqué
+    ar_col8: [1, 2, 3, 4, 5],             // Array : Tableau de valeurs
+    ar_col9: BinData(0, "binary data"),   // Binary data : Données binaires
+    ar_col10: /pattern/i,                 // Regular expression : Expression régulière
+    ar_col11: NumberLong("123456789012"), // 64-bit integer : Entier 64 bits
+    ar_col12: NumberInt("123"),           // 32-bit integer : Entier 32 bits
+    ar_col13: NumberDecimal("123.456"),   // Decimal128 : Nombre à virgule flottante à précision arbitraire
+    ar_col14: Timestamp(0, 0),            // Timestamp : Horodatage pour les opérations internes de MongoDB
+    ar_col15: undefined,                  // Undefined : Valeur non définie (généralement déconseillé d'utiliser)
+    ar_col16: MinKey,                     // MinKey : Valeur spéciale inférieure à toutes les autres dans MongoDB
+    ar_col17: MaxKey                      // MaxKey : Valeur spéciale supérieure à toutes les autres dans MongoDB
+})
+
+--------------------------
+
+Sur plusieurs lignes :
+
+db.ar_mdemo1.insertMany([
+    {
+        ar_col1: "String data 1",
+        ar_col2: 123,
+        ar_col3: true,
+        ar_col4: new Date(),
+        ar_col5: { subfield1: "subdata 1", subfield2: 456 },
+        ar_col6: [1, 2, 3, 4, 5]
+    },
+    {
+        ar_col1: "String data 2",
+        ar_col2: 789,
+        ar_col3: false,
+        ar_col4: new Date(),
+        ar_col5: { subfield1: "subdata 2", subfield2: 101112 },
+        ar_col6: [6, 7, 8, 9, 10]
+    }
+])
+
+4 --------------------------------------------------------------------
+
+Appeler un fichier .js
+
+load("/scripts/insert/insert.js")
+
+5 --------------------------------------------------------------------
+
+MàJ d'un tableau dans une ligne
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $push: { ar_col6: 11 } })
+
+6 --------------------------------------------------------------------
+
+Création d'une collection avec un schéma
+
+db.createCollection("ar_mdemo3", {
+   validator: {
+      $jsonSchema: {
+         bsonType: "object",
+         required: ["ar_col1", "ar_col2"],
+         properties: {
+            ar_col1: {
+               bsonType: "string",
+               description: "must be a string and is required"
+            },
+            ar_col2: {
+               bsonType: "int",
+               minimum: 0,
+               maximum: 100,
+               description: "must be an integer in [0, 100] and is required"
+            }
+         }
+      }
+   }
+})
+
+7 --------------------------------------------------------------------
+
+Incrémenter et décrémenter une valeur
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $inc: { "ar_col2": 1 } })
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $inc: { "ar_col2": -1 } })
+
+8 --------------------------------------------------------------------
+
+Suppréssion de plusieurs lignes avec REGEX 
+
+db.ar_mdemo1.remove({ ar_col1: /data/ })
+
+9 --------------------------------------------------------------------
+
+Création et suppression d'un index
+
+db.ar_mdemo1.createIndex({ ar_col1: 1 })
+
+db.ar_mdemo1.dropIndex("ar_col1_1")
+
+10 -------------------------------------------------------------------
+
+Opérateurs de comparaison :
+
+Opérateur d'égalité ($eq) :
+
+db.ar_mdemo1.find({ ar_col2: { $eq: 100 } })
+
+------------------------
+
+Opérateur de supériorité ($gt) :
+
+db.ar_mdemo1.find({ ar_col2: { $gt: 100 } })
+
+------------------------
+
+Opérateur de supériorité ou égalité ($gte) :
+
+db.ar_mdemo1.find({ ar_col2: { $gte: 100 } })
+
+------------------------
+
+Opérateur d'infériorité ($lt) :
+
+db.ar_mdemo1.find({ ar_col2: { $lt: 100 } })
+
+------------------------
+
+Opérateur d'infériorité ou égalité ($lte) :
+
+db.ar_mdemo1.find({ ar_col2: { $lte: 100 } })
+
+------------------------
+
+Opérateur de non égalité ($ne) :
+
+db.ar_mdemo1.find({ ar_col2: { $ne: 100 } })
+
+------------------------
+
+Opérateur "dans la liste" ($in) :
+
+db.ar_mdemo1.find({ ar_col2: { $in: [100, 150, 200] } })
+
+------------------------
+
+Opérateur "pas dans la liste" ($nin) :
+
+db.ar_mdemo1.find({ ar_col2: { $nin: [100, 150, 200] } })
+
+11 -------------------------------------------------------------------
+
+
+Opérateurs logiques :
+
+Opérateur "ET" logique ($and) :
+
+db.ar_mdemo1.find({
+   $and: [
+      { ar_col1: "String data" },
+      { ar_col2: 123 }
+   ]
+})
+
+------------------------
+
+Opérateur "OU" logique ($or) :
+
+db.ar_mdemo1.find({
+   $or: [
+      { ar_col1: "String data" },
+      { ar_col2: 12 } // n'éxiste pas mais la commande fonctionne quand meme, c'est un "OU"
+   ]
+})
+
+------------------------
+
+Opérateur "NON" logique ($not) :
+
+db.ar_mdemo1.find({ar_col3: {$not: {$eq: true}}}) //false
+
+------------------------
+
+Opérateur "NOR" logique ($nor) :
+
+db.ar_mdemo1.find({
+   $nor: [
+      { ar_col2: 123 },
+      { ar_col3: true }
+   ]
+})
+
+12 -------------------------------------------------------------------
+
+Opérateurs élémentaires :
+
+Opérateur $exists :
+
+db.ar_mdemo1.find({ ar_col2: { $exists: true } }) // false
+
+------------------------
+
+Opérateur $type :
+
+db.ar_mdemo1.find({ ar_col2: { $type: "int" } }) // "string"
+
+
+13 -------------------------------------------------------------------
+
+Opérateurs de MàJ de db
+
+Opérateur d'incrémentation ($inc) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $inc: { ar_col2: 1 } })
+
+------------------------
+
+Opérateur de multiplication ($mul) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $mul: { ar_col2: 1.5 } })
+
+------------------------
+
+Opérateur de renommage ($rename) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $rename: { "ar_col5": "new_ar_col5" } })
+
+------------------------
+
+Opérateur de définition d'une valeur lors de l'insertion ($setOnInsert) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $setOnInsert: { ar_col2: 123 } })
+
+------------------------
+
+Opérateur de définition d'une valeur ($set) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $set: { ar_col2: 123 } })
+
+------------------------
+
+Opérateur de suppression de champ ($unset) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $unset: { ar_col3: true } })
+
+------------------------
+
+Opérateur de définition d'une valeur minimale ($min) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $min: { ar_col2: 10 } })
+
+------------------------
+
+Opérateur de définition d'une valeur maximale ($max) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $max: { ar_col2: 1000 } })
+
+------------------------
+
+Opérateur de définition de la date actuelle ($currentDate) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $currentDate: { ar_col4: true } })
+
+------------------------
+
+Opérateur d'ajout à un ensemble ($addToSet) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $addToSet: { ar_col6: 6 } })
+
+------------------------
+
+Opérateur de suppression du premier élément d'un tableau ($pop) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $pop: { ar_col6: -1 } })
+
+------------------------
+
+Opérateur de suppression du dernier élément d'un tableau ($pop) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $pop: { ar_col6: 1 } })
+
+------------------------
+
+Opérateur de suppression de toutes les occurrences d'une liste de valeurs d'un tableau ($pullAll) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $pullAll: { ar_col6: [ 3, 4] } })
+
+------------------------
+
+Opérateur de suppression de toutes les occurrences d'une valeur d'un tableau ($pull) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $pull: { ar_col6: 2 } })
+
+------------------------
+
+Opérateur d'ajout d'une valeur à un tableau ($push) :
+
+db.ar_mdemo1.update({ ar_col1: "String data 1" }, { $push: { ar_col6: 5 } })
+
+// On devrait avoir la colone 6 composée de [5,5] pour la première ligne (premier objet -> quand ar_col1 = "String data 1")
