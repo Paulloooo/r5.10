@@ -247,3 +247,11 @@ Drop table / keyspace
 
 DROP KEYSPACE IF EXISTS ar_demo2;
 DROP TABLE IF EXISTS ar_colFamDemo2;
+
+ 25 ----------------------------------------------------------------------------------------------
+
+Changer le bloom-filter sur une table.
+Le bloom-filter permet de dire à cassandra, pdt une recherche, la probabilité qu'un élément soit dans une table.
+
+ALTER TABLE keyspace.table WITH bloom_filter_fp_chance=0.01
+
