@@ -1,6 +1,6 @@
 ## Instructions
 
-installer GO via : https://go.dev/doc/install (vous devez choisir en focntionde votre OS)
+installer GO via : https://go.dev/doc/install (vous devez choisir en fonction de votre OS)
 
 ### Dépendances
 ```
